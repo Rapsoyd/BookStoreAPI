@@ -22,6 +22,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/', include('library.urls')),
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),  # Аутентификация
     path('api/token/refersh/', TokenRefreshView.as_view(), name='token_refresh'),  # Обновление токена
