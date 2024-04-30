@@ -23,7 +23,8 @@ class Genre(models.Model):
         ('Sci-Fi', 'Научная фантастика'),
         ('Thriller', 'Триллер'),
         ('War', 'Война'),
-        ('Western', 'Вестерн')
+        ('Western', 'Вестерн'),
+        ('Technical', "Техническая литература")
     )
 
     name = models.CharField(max_length=30, choices=GENRE_OPTIONS)
@@ -34,7 +35,7 @@ class Genre(models.Model):
 
 class Book(models.Model):
     title = models.CharField(max_length=80, verbose_name='book_title')
-    author = models.CharField(max_length=80, verbose_name='book_author')
+    author = models.ForeignKey(to=Author, max_length=80, verbose_name='book_author', on_delete=models.CASCADE)
     description = models.TextField()
     published = models.DateField()
     genres = models.ManyToManyField(Genre)
@@ -51,7 +52,7 @@ class Cart(models.Model):
     )
     user = models.OneToOneField(to=User, on_delete=models.PROTECT, related_name='cart_user')
     address = models.CharField(max_length=50, choices=ADDRESS_OPTIONS)
-    paid = models.BooleanField(default=False)
+    paid = models.BooleanField(default=False, verbose_name='Статус оплаты')
     created = models.DateTimeField(auto_now_add=True, null=True)
 
     def total_price(self):
@@ -72,3 +73,17 @@ class CartBook(models.Model):
     def __str__(self):
         return f"{self.book.title}, " \
                f"{self.book.price}Rub * {self.count} = {self.total()}Rub"
+
+
+class BookReview(models.Model):
+    book = models.ForeignKey(to=Book, on_delete=models.CASCADE, related_name="reviews")
+    user = models.ForeignKey(to=User, on_delete=models.CASCADE)
+    rating = models.IntegerField(choices=[(i, i) for i in range(1, 6)])  # Stars rate 1-5
+    comment = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('book', 'user')
+
+    def __str__(self):
+        return f"{self.book} {self.rating} {self.created_at}"
