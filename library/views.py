@@ -19,6 +19,8 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404
+from rest_framework_simplejwt.tokens import RefreshToken
+
 
 class UserViewSet(CreateModelMixin, GenericViewSet):
 
@@ -39,6 +41,7 @@ class UserViewSet(CreateModelMixin, GenericViewSet):
             user = request.user
             user.delete()
             return Response({'message': 'Аккаунт был успешно удалён'}, status=status.HTTP_204_NO_CONTENT)
+
 
     def get_serializer_class(self):
         if self.action == "create":
@@ -89,12 +92,15 @@ class BookReviewSet(UpdateModelMixin, DestroyModelMixin, ListModelMixin, Retriev
         else:
             return Response(serializer.data, status=status.HTTP_400_BAD_REQUEST)
 
-    @action(detail=False, methods=['get'])
-    def user_reviews(self, request):
-        instance = self.request.user
-        book_id = self.request.query_params.get('book_id')  # Getting book id from URL params
-        user_reviews = BookReview.objects.filter(user=instance, book__id=book_id)
-        serializer = self.get_serializer(user_reviews, many=True)
+    @action(detail=True, methods=['get'])
+    def user_reviews(self, request, pk=None):
+        user = request.user
+        queryset = self.filter_queryset(self.get_queryset().filter(user=user))
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(data=request.data)
         return Response(serializer.data)
 
     def perform_update(self, serializer):

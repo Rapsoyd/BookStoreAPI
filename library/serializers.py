@@ -2,9 +2,12 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 from library.models import BookReview, Book, Cart, CartBook, Genre
 from django.db.models import Avg
-from django.contrib.auth.hashers import make_password
+from django.core.exceptions import ValidationError
+
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField()
+
     class Meta:
         model = User
         fields = (
@@ -15,23 +18,47 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
             'last_name',
         )
 
+    def validate_email(self, value):
+        if User.objects.filter(email=value).exists():
+            raise ValidationError('This email address is already in use.')
+        return value
+
+    def create(self, validated_data):
+        user = User.objects.create(
+            username=validated_data['username'],
+            email=validated_data['email'],
+            first_name=validated_data['first_name'],
+            last_name=validated_data['last_name']
+        )
+        user.set_password(validated_data['password'])
+        user.save()
+
+        return user
+
 
 class UserRetrieveSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField()
+
     class Meta:
         model = User
         fields = (
             'id',
             'username',
-            'password',
             'email',
             'first_name',
             'last_name',
         )
-        extra_kwargs = {'password': {'write_only': True}}
+
+    def validate_email(self, value):
+        if 'email' in self.initial_data:
+            if value != self.instance.email:
+                if User.objects.filter(email=value).exists():
+                    raise ValidationError('This email address is already in use.')
+        return value
 
     def update(self, instance, validated_data):
-        if 'password' in validated_data:
-            validated_data['password'] = make_password(validated_data['password'])
+        if 'email' in validated_data:
+            instance.email = validated_data['email']
         return super().update(instance, validated_data)
 
 
