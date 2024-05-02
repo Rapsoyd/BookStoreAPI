@@ -1,66 +1,23 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from library.models import BookReview, Book, Cart, CartBook, Genre
+from library.models import BookReview, Book
 from django.db.models import Avg
-from django.core.exceptions import ValidationError
 
 
-class UserRegistrationSerializer(serializers.ModelSerializer):
-    email = serializers.EmailField()
-
+class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = (
-            'username',
-            'password',
-            'email',
-            'first_name',
-            'last_name',
-        )
+        fields = ['email', 'username', 'password']
+        extra_kwargs = {'password': {'write_only': True}}
 
-    def validate_email(self, value):
-        if User.objects.filter(email=value).exists():
-            raise ValidationError('This email address is already in use.')
-        return value
-
-    def create(self, validated_data):
-        user = User.objects.create(
-            username=validated_data['username'],
-            email=validated_data['email'],
-            first_name=validated_data['first_name'],
-            last_name=validated_data['last_name']
-        )
-        user.set_password(validated_data['password'])
-        user.save()
-
-        return user
-
-
-class UserRetrieveSerializer(serializers.ModelSerializer):
-    email = serializers.EmailField()
-
-    class Meta:
-        model = User
-        fields = (
-            'id',
-            'username',
-            'email',
-            'first_name',
-            'last_name',
-        )
-
-    def validate_email(self, value):
-        if 'email' in self.initial_data:
-            if value != self.instance.email:
-                if User.objects.filter(email=value).exists():
-                    raise ValidationError('This email address is already in use.')
-        return value
-
-    def update(self, instance, validated_data):
-        if 'email' in validated_data:
-            instance.email = validated_data['email']
-        return super().update(instance, validated_data)
-
+        def create(self, validated_data):
+            user = User(
+                email=validated_data['email'],
+                username=validated_data['username']
+            )
+            user.set_password(validated_data['password'])
+            user.save()
+            return user
 
 class BookListSerializer(serializers.ModelSerializer):
     avg_rating = serializers.SerializerMethodField()
@@ -129,3 +86,5 @@ class BookRetrieveSerializer(serializers.ModelSerializer):
 
     def get_total_reviews(self, obj):
         return BookReview.objects.filter(book=obj).count()
+
+

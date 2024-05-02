@@ -1,17 +1,16 @@
-from rest_framework.viewsets import GenericViewSet, ModelViewSet
+from rest_framework.viewsets import GenericViewSet
 from library.models import Book, BookReview
 from rest_framework.mixins import (
-    CreateModelMixin,
     UpdateModelMixin,
     Response,
     RetrieveModelMixin,
     DestroyModelMixin,
     ListModelMixin)
-from library.serializers import (UserRegistrationSerializer,
-                                 UserRetrieveSerializer,
-                                 BookListSerializer,
-                                 BookRetrieveSerializer,
-                                 BookReviewSerializer)
+from library.serializers import (
+    BookListSerializer,
+    BookRetrieveSerializer,
+    BookReviewSerializer,
+)
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework import status
@@ -19,42 +18,6 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404
-from rest_framework_simplejwt.tokens import RefreshToken
-
-
-class UserViewSet(CreateModelMixin, GenericViewSet):
-
-    @action(detail=False, methods=["get", "put", "patch", "delete"], url_path="me")
-    def me(self, request):
-        if request.method == "GET":
-            instance = self.request.user
-            serializer = self.get_serializer(instance)
-            return Response(serializer.data)
-        elif request.method in ["PUT", "PATCH"]:
-            instance = request.user
-            serializer = self.get_serializer(instance, data=request.data, partial=request.method == 'PATCH')
-            if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        elif request.method == "DELETE":
-            user = request.user
-            user.delete()
-            return Response({'message': 'Аккаунт был успешно удалён'}, status=status.HTTP_204_NO_CONTENT)
-
-
-    def get_serializer_class(self):
-        if self.action == "create":
-            return UserRegistrationSerializer
-        if self.action in ["retrieve", "me"]:
-            return UserRetrieveSerializer
-
-    def get_permissions(self):
-        if self.action == 'create':
-            self.permission_classes = [AllowAny]
-        else:
-            self.permission_classes = [IsAuthenticated]
-        return super().get_permissions()
 
 
 class BookViewSet(ListModelMixin, RetrieveModelMixin, GenericViewSet):
