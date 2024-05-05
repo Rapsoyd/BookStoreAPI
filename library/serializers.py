@@ -19,6 +19,7 @@ class UserSerializer(serializers.ModelSerializer):
             user.save()
             return user
 
+
 class BookListSerializer(serializers.ModelSerializer):
     avg_rating = serializers.SerializerMethodField()
     total_reviews = serializers.SerializerMethodField()
@@ -33,6 +34,7 @@ class BookListSerializer(serializers.ModelSerializer):
             "published",
             "genres",
             "price",
+            "image",
             "avg_rating",
             "total_reviews",
             "short_description",
@@ -46,8 +48,8 @@ class BookListSerializer(serializers.ModelSerializer):
 
     def get_short_description(self, obj):
         if len(obj.description) > 270:
-            return obj.body[:270] + '...'
-        return obj.body
+            return obj.description[:270] + '...'
+        return obj.description
 
 
 class BookReviewSerializer(serializers.ModelSerializer):
@@ -87,4 +89,9 @@ class BookRetrieveSerializer(serializers.ModelSerializer):
     def get_total_reviews(self, obj):
         return BookReview.objects.filter(book=obj).count()
 
+
+class BookAsProductSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Book
+        fields = "__all__"
 

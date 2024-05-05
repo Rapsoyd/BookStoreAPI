@@ -38,41 +38,13 @@ class Book(models.Model):
     author = models.ForeignKey(to=Author, max_length=80, verbose_name='book_author', on_delete=models.CASCADE)
     description = models.TextField()
     published = models.DateField()
+    image = models.ImageField(upload_to='products/%Y/%m/%d', blank=True)
     genres = models.ManyToManyField(Genre)
+    is_available = models.BooleanField(default=True)
     price = models.DecimalField(max_digits=10, decimal_places=2)
 
     def __str__(self):
         return f"{self.title}: {self.price}Rub"
-
-
-class Cart(models.Model):
-    ADDRESS_OPTIONS = (
-        ('Вива-Ленд', "просп. Кирова, 147, Самара"),
-        ("Космопорт", "ул. Дыбенко, 30, Самара")
-    )
-    user = models.OneToOneField(to=User, on_delete=models.PROTECT, related_name='cart_user')
-    address = models.CharField(max_length=50, choices=ADDRESS_OPTIONS)
-    paid = models.BooleanField(default=False, verbose_name='Статус оплаты')
-    created = models.DateTimeField(auto_now_add=True, null=True)
-
-    def total_price(self):
-        return sum([cart_item.total() for cart_item in CartBook.objects.filter(cart=self)])
-
-    def __str__(self):
-        return f"{self.created}, {self.total_price()}Rub: {'Оплачен' if self.paid else 'Не оплачен'}"
-
-
-class CartBook(models.Model):
-    book = models.ForeignKey(to=Book, on_delete=models.CASCADE)
-    cart = models.ForeignKey(to=Cart, on_delete=models.CASCADE)
-    count = models.IntegerField(default=1)
-
-    def total(self):
-        return self.count * self.book.price
-
-    def __str__(self):
-        return f"{self.book.title}, " \
-               f"{self.book.price}Rub * {self.count} = {self.total()}Rub"
 
 
 class BookReview(models.Model):

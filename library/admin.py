@@ -1,15 +1,5 @@
 from django.contrib import admin
-from library.models import Author, Genre, Book, Cart, CartBook, BookReview
-
-
-class BookInline(admin.StackedInline):
-    model = CartBook
-    extra = 5
-
-
-class CartAdmin(admin.ModelAdmin):
-    inlines = [BookInline]
-    list_display = ['created', 'total_price', 'paid']
+from library.models import Author, Genre, Book, BookReview
 
 
 @admin.register(BookReview)
@@ -41,5 +31,3 @@ class AdminBook(admin.ModelAdmin):
 
     get_short_description.short_description = 'description'
 
-
-admin.site.register(Cart, CartAdmin)
