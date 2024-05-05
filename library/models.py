@@ -1,5 +1,11 @@
 from django.db import models
 from django.contrib.auth.models import User
+from library.fields import WEBPField
+import uuid
+
+
+def image_folder(instance, filename):
+    return 'photos/{}.webp'.format(uuid.uuid4().hex)
 
 
 class Author(models.Model):
@@ -10,22 +16,16 @@ class Author(models.Model):
 
 
 class Genre(models.Model):
-    GENRE_OPTIONS = (
-        ('Action', 'Приключенческий боевик'),
-        ('Adventure', 'Приключения'),
-        ('Comedy', 'Комедия'),
-        ('Crime', 'Криминал'),
-        ('Drama', 'Драма'),
-        ('Fantasy', 'Фэнтези'),
-        ('Horror', 'Ужасы'),
-        ('Mystery', 'Мистика'),
-        ('Romance', 'Романтика'),
-        ('Sci-Fi', 'Научная фантастика'),
-        ('Thriller', 'Триллер'),
-        ('War', 'Война'),
-        ('Western', 'Вестерн'),
-        ('Technical', "Техническая литература")
-    )
+    GENRE_OPTIONS = (('Action', 'Приключенческий боевик'), ('Adventure',
+                                                            'Приключения'),
+                     ('Comedy', 'Комедия'), ('Crime', 'Криминал'),
+                     ('Drama', 'Драма'), ('Fantasy', 'Фэнтези'), ('Horror',
+                                                                  'Ужасы'),
+                     ('Mystery', 'Мистика'), ('Romance', 'Романтика'),
+                     ('Sci-Fi', 'Научная фантастика'), ('Thriller', 'Триллер'),
+                     ('War', 'Война'), ('Western',
+                                        'Вестерн'), ('Technical',
+                                                     "Техническая литература"))
 
     name = models.CharField(max_length=30, choices=GENRE_OPTIONS)
 
@@ -35,10 +35,13 @@ class Genre(models.Model):
 
 class Book(models.Model):
     title = models.CharField(max_length=80, verbose_name='book_title')
-    author = models.ForeignKey(to=Author, max_length=80, verbose_name='book_author', on_delete=models.CASCADE)
+    author = models.ForeignKey(to=Author,
+                               max_length=80,
+                               verbose_name='book_author',
+                               on_delete=models.CASCADE)
     description = models.TextField()
     published = models.DateField()
-    image = models.ImageField(upload_to='products/%Y/%m/%d', blank=True)
+    image = WEBPField(upload_to=image_folder, blank=True)
     genres = models.ManyToManyField(Genre)
     is_available = models.BooleanField(default=True)
     price = models.DecimalField(max_digits=10, decimal_places=2)
@@ -48,9 +51,12 @@ class Book(models.Model):
 
 
 class BookReview(models.Model):
-    book = models.ForeignKey(to=Book, on_delete=models.CASCADE, related_name="reviews")
+    book = models.ForeignKey(to=Book,
+                             on_delete=models.CASCADE,
+                             related_name="reviews")
     user = models.ForeignKey(to=User, on_delete=models.CASCADE)
-    rating = models.IntegerField(choices=[(i, i) for i in range(1, 6)])  # Stars rate 1-5
+    rating = models.IntegerField(choices=[(i, i) for i in range(1, 6)
+                                          ])  # Stars rate 1-5
     comment = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
