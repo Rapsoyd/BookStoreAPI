@@ -154,7 +154,7 @@ SIMPLE_JWT = {
 SPECTACULAR_SETTINGS = {
     'TITLE': 'Book Store API',
     'DESCRIPTION': 'This is a book store API where you can buy books.',
-    'VERSION': '0.8.0',
+    'VERSION': '1.0.2',
     'SERVE_INCLUDE_SCHEMA': False,
 }
 
