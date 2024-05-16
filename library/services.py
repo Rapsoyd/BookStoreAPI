@@ -4,6 +4,7 @@ from django.conf import settings
 
 from .serializers import BookAsProductSerializer
 from .models import Book
+from django.core.mail import send_mail
 
 
 class Cart:
@@ -20,6 +21,7 @@ class Cart:
 
     def save(self):
         self.session.modified = True
+        self.session[settings.CART_SESSION_ID] = self.cart
 
     def add(self, product, quantity=1, overide_quantity=False):
         """
@@ -75,3 +77,13 @@ class Cart:
         # remove cart from session
         del self.session[settings.CART_SESSION_ID]
         self.save()
+
+    def confirm_order(self, email):
+        """
+        Confirm the order and sending an email and clearing the cart
+        """
+        subject = 'Подтвердите заказ'
+        message = 'Заказ был успешно подтверждён'
+        send_mail(subject, message, settings.EMAIL_HOST_USER, [email])
+
+        self.clear()
